@@ -70,3 +70,25 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* Typed word styling */
+.word-display {
+  font-family: 'Inter', monospace;
+  letter-spacing: 0.05em;
+}
+
+.current-letter {
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+.correct-letter {
+  color: #5B5C5C;
+  font-weight: bold;
+}
+
+.incorrect-letter {
+  text-decoration: line-through;
+  color: #5B5C5C;
+  opacity: 0.7;
+}

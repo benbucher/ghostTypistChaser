@@ -17,6 +17,7 @@ export default function GhostTypist() {
     handleTyping,
     startGame,
     restartGame,
+    typedWordState
   } = useGame();
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -69,8 +70,19 @@ export default function GhostTypist() {
 
         {/* Word Display */}
         <div className="mb-4 text-center">
-          <div className="text-3xl font-semibold mb-4 text-primary">
-            {currentWord}
+          <div className="text-3xl font-semibold mb-4 text-primary word-display">
+            {typedWordState.letterStates.map((state, index) => (
+              <span 
+                key={index} 
+                className={
+                  index === typedWordState.typedText.length ? 'current-letter' : 
+                  state === 'correct' ? 'correct-letter' : 
+                  state === 'incorrect' ? 'incorrect-letter' : ''
+                }
+              >
+                {currentWord[index]}
+              </span>
+            ))}
           </div>
         </div>
 
@@ -104,9 +116,8 @@ export default function GhostTypist() {
         {gameState === "gameOver" && (
           <div className="text-center fade-in">
             <h2 className="text-xl font-semibold mb-1 text-primary">
-              Game Over!
+              Game Over
             </h2>
-            <p className="text-primary mb-2 text-sm">The ghost caught you!</p>
             <div className="flex justify-center gap-4 mb-4 text-sm">
               <div className="bg-white bg-opacity-50 px-3 py-2 rounded text-primary">
                 <span className="font-medium">Score: </span>

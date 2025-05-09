@@ -5,6 +5,13 @@ import { queryClient } from "@/lib/queryClient";
 
 type GameState = 'idle' | 'playing' | 'gameOver';
 
+// For tracking typing state and displaying correct/incorrect letters
+export interface TypedWordState {
+  targetWord: string;
+  typedText: string;
+  letterStates: ('correct' | 'incorrect' | 'pending')[];
+}
+
 export function useGame() {
   const [gameState, setGameState] = useState<GameState>('idle');
   const [currentWord, setCurrentWord] = useState<string>('');
@@ -15,6 +22,11 @@ export function useGame() {
   const [progressValue, setProgressValue] = useState<number>(100);
   const [finalScore, setFinalScore] = useState<number>(0);
   const [decreaseRate, setDecreaseRate] = useState<number>(1);
+  const [typedWordState, setTypedWordState] = useState<TypedWordState>({
+    targetWord: '',
+    typedText: '',
+    letterStates: []
+  });
   
   const progressDecreaseTimerRef = useRef<number | null>(null);
   const gameTimerRef = useRef<number | null>(null);
@@ -57,11 +69,19 @@ export function useGame() {
     setCurrentScore(0);
     setGameTime(0);
     setProgressValue(100);
-    setDecreaseRate(2); // Start with a higher decrease rate
+    setDecreaseRate(1.5); // More balanced initial decrease rate
     setCurrentLevel(1);
     
     // Set random word
-    setCurrentWord(getRandomWord());
+    const newWord = getRandomWord();
+    setCurrentWord(newWord);
+    
+    // Reset typed word state
+    setTypedWordState({
+      targetWord: newWord.toLowerCase(),
+      typedText: '',
+      letterStates: Array(newWord.length).fill('pending')
+    });
     
     // Start timers
     startProgressDecrease();
@@ -140,23 +160,68 @@ export function useGame() {
     }, 1000);
   };
   
+  // Calculate correct characters
+  const calculateCorrectChars = (typed: string, target: string): number => {
+    let correctChars = 0;
+    
+    for (let i = 0; i < typed.length && i < target.length; i++) {
+      if (typed[i] === target[i]) {
+        correctChars++;
+      }
+    }
+    
+    return correctChars;
+  };
+
   // Handle typing
   const handleTyping = (e: ChangeEvent<HTMLInputElement>) => {
     if (gameState !== 'playing') return;
     
-    const typedText = e.target.value.trim().toLowerCase();
+    const typedText = e.target.value.toLowerCase();
     const targetWord = currentWord.toLowerCase();
     
-    // If the word is correct
-    if (typedText === targetWord) {
-      // Increase score (add the number of characters)
-      setCurrentScore((prev) => prev + targetWord.length);
+    // Update the typed word state for visualization
+    const letterStates = targetWord.split('').map((letter, index) => {
+      if (index >= typedText.length) return 'pending';
+      return typedText[index] === letter ? 'correct' : 'incorrect';
+    });
+    
+    setTypedWordState({
+      targetWord,
+      typedText,
+      letterStates
+    });
+    
+    // Move to next word when the length matches
+    if (typedText.length >= targetWord.length) {
+      // Count correct characters
+      const correctChars = calculateCorrectChars(typedText, targetWord);
       
-      // Push back the ghost (reduced from 10 to 8 to make it harder)
-      setProgressValue((prev) => Math.min(100, prev + 8));
+      // Add points for correct characters
+      setCurrentScore(prev => prev + correctChars);
+      
+      // Calculate progress recovery based on accuracy
+      const accuracy = correctChars / targetWord.length;
+      let progressRecovery = accuracy * 8; // Base recovery scaled by accuracy
+      
+      // Perfect match bonus
+      if (typedText === targetWord) {
+        progressRecovery += 3; // Bonus for perfect word
+      }
+      
+      // Push back the ghost based on accuracy
+      setProgressValue(prev => Math.min(100, prev + progressRecovery));
       
       // Get a new word
-      setCurrentWord(getRandomWord());
+      const newWord = getRandomWord();
+      setCurrentWord(newWord);
+      
+      // Reset typed word state
+      setTypedWordState({
+        targetWord: newWord.toLowerCase(),
+        typedText: '',
+        letterStates: Array(newWord.length).fill('pending')
+      });
       
       // Clear input
       e.target.value = '';
@@ -187,6 +252,7 @@ export function useGame() {
     finalScore,
     handleTyping,
     startGame,
-    restartGame
+    restartGame,
+    typedWordState
   };
 }
