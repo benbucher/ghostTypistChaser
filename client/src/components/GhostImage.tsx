@@ -1,4 +1,4 @@
-import ghostImage from '@assets/ghostIconNoBackgroung.png';
+import ghostImage from '@/assets/ghostIconNoBackgroung.png';
 
 interface GhostImageProps {
   className?: string;

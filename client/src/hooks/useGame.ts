@@ -152,8 +152,8 @@ export function useGame() {
       // Increase score (add the number of characters)
       setCurrentScore((prev) => prev + targetWord.length);
       
-      // Push back the ghost
-      setProgressValue((prev) => Math.min(100, prev + 10));
+      // Push back the ghost (reduced from 10 to 8 to make it harder)
+      setProgressValue((prev) => Math.min(100, prev + 8));
       
       // Get a new word
       setCurrentWord(getRandomWord());

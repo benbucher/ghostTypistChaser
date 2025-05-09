@@ -5,8 +5,9 @@
 @tailwind utilities;
 
 :root {
-  --background: 216 6% 93%;
-  --foreground: 210 1% 36%;
+  /* Updated to exactly match requested colors */
+  --background: 220 15% 93%; /* E9EBEF */
+  --foreground: 180 1% 36%; /* 5B5C5C */
   --muted: 60 4.8% 95.9%;
   --muted-foreground: 25 5.3% 44.7%;
   --popover: 0 0% 100%;
@@ -15,8 +16,8 @@
   --card-foreground: 20 14.3% 4.1%;
   --border: 20 5.9% 90%;
   --input: 20 5.9% 90%;
-  --primary: 210 1% 36%;
-  --primary-foreground: 216 6% 93%;
+  --primary: 180 1% 36%; /* 5B5C5C */
+  --primary-foreground: 220 15% 93%; /* E9EBEF */
   --secondary: 60 4.8% 95.9%;
   --secondary-foreground: 24 9.8% 10%;
   --accent: 60 4.8% 95.9%;

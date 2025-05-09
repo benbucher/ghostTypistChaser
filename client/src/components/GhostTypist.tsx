@@ -68,8 +68,8 @@ export default function GhostTypist() {
         </div>
 
         {/* Word Display */}
-        <div className="mb-6 text-center">
-          <div className="text-2xl font-semibold mb-6 text-primary">
+        <div className="mb-4 text-center">
+          <div className="text-3xl font-semibold mb-4 text-primary">
             {currentWord}
           </div>
         </div>
@@ -103,22 +103,22 @@ export default function GhostTypist() {
         {/* Game Over Message */}
         {gameState === "gameOver" && (
           <div className="text-center fade-in">
-            <h2 className="text-xl font-semibold mb-2 text-primary">
+            <h2 className="text-xl font-semibold mb-1 text-primary">
               Game Over!
             </h2>
-            <p className="text-primary mb-4">The ghost caught you!</p>
-            <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
-              <div className="bg-white bg-opacity-50 p-3 rounded text-primary">
-                <div className="font-medium">Final Score</div>
-                <div className="text-lg font-semibold">{finalScore}</div>
+            <p className="text-primary mb-2 text-sm">The ghost caught you!</p>
+            <div className="flex justify-center gap-4 mb-4 text-sm">
+              <div className="bg-white bg-opacity-50 px-3 py-2 rounded text-primary">
+                <span className="font-medium">Score: </span>
+                <span className="font-semibold">{finalScore}</span>
               </div>
-              <div className="bg-white bg-opacity-50 p-3 rounded text-primary">
-                <div className="font-medium">Survived</div>
-                <div className="text-lg font-semibold">{gameTime}s</div>
+              <div className="bg-white bg-opacity-50 px-3 py-2 rounded text-primary">
+                <span className="font-medium">Time: </span>
+                <span className="font-semibold">{gameTime}s</span>
               </div>
             </div>
             <Button
-              className="bg-primary text-background font-medium py-3 px-8 rounded-full hover:bg-opacity-90 transition-all text-lg"
+              className="bg-primary text-background font-medium py-2 px-6 rounded-full hover:bg-opacity-90 transition-all"
               onClick={restartGame}
             >
               Play Again
