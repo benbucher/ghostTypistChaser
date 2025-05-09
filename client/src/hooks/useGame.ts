@@ -57,7 +57,7 @@ export function useGame() {
     setCurrentScore(0);
     setGameTime(0);
     setProgressValue(100);
-    setDecreaseRate(1);
+    setDecreaseRate(2); // Start with a higher decrease rate
     setCurrentLevel(1);
     
     // Set random word
@@ -107,7 +107,7 @@ export function useGame() {
     
     progressDecreaseTimerRef.current = window.setInterval(() => {
       setProgressValue((prev) => {
-        const newValue = prev - decreaseRate / 10; // Smooth decrease (10 updates per second)
+        const newValue = prev - decreaseRate / 5; // Faster decrease (5 updates per second)
         
         if (newValue <= 0) {
           endGame();
