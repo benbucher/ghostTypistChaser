@@ -69,7 +69,7 @@ export function useGame() {
     setCurrentScore(0);
     setGameTime(0);
     setProgressValue(100);
-    setDecreaseRate(1.5); // More balanced initial decrease rate
+    setDecreaseRate(1.0); // Start with consistent initial decrease rate
     setCurrentLevel(1);
     
     // Set random word
@@ -90,6 +90,10 @@ export function useGame() {
   
   // End the game
   const endGame = () => {
+    // Save final score before changing game state
+    const finalScoreValue = currentScore;
+    setFinalScore(finalScoreValue);
+    
     setGameState('gameOver');
     
     // Clear timers
@@ -104,14 +108,11 @@ export function useGame() {
     }
     
     // Update high score if needed
-    if (currentScore > highScore) {
-      setHighScore(currentScore);
-      saveHighScore(currentScore);
-      saveHighScoreToServer(currentScore);
+    if (finalScoreValue > highScore) {
+      setHighScore(finalScoreValue);
+      saveHighScore(finalScoreValue);
+      saveHighScoreToServer(finalScoreValue);
     }
-    
-    // Set final score
-    setFinalScore(currentScore);
   };
   
   // Restart the game
@@ -139,7 +140,7 @@ export function useGame() {
     }, 100);
   };
   
-  // Update game timer
+  // Update game timer with deterministic difficulty increase
   const updateGameTimer = () => {
     if (gameTimerRef.current) {
       window.clearInterval(gameTimerRef.current);
@@ -149,10 +150,16 @@ export function useGame() {
       setGameTime((prev) => {
         const newTime = prev + 1;
         
-        // Increase difficulty every difficultyIncreaseInterval seconds
+        // Deterministic difficulty increase every 20 seconds
+        // At 20s: 1.0 -> 1.5
+        // At 40s: 1.5 -> 2.0
+        // At 60s: 2.0 -> 2.5, etc.
         if (newTime % difficultyIncreaseInterval === 0) {
-          setDecreaseRate((prevRate) => prevRate + 0.5);
-          setCurrentLevel((prevLevel) => prevLevel + 1);
+          const levelNumber = Math.floor(newTime / difficultyIncreaseInterval);
+          const newDecreaseRate = 1.0 + (levelNumber * 0.5);
+          
+          setDecreaseRate(newDecreaseRate);
+          setCurrentLevel(levelNumber + 1);
         }
         
         return newTime;

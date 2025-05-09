@@ -33,7 +33,7 @@ export default function GhostTypist() {
     <div className="min-h-screen p-4 flex flex-col items-center justify-between fade-in">
       {/* Header */}
       <div className="text-center w-full py-4">
-        <h1 className="text-2xl font-semibold text-primary">Ghost Typist</h1>
+        <h1 className="text-4xl text-primary">Ghost Typist</h1>
       </div>
 
       {/* Score Display */}
@@ -48,7 +48,7 @@ export default function GhostTypist() {
         </div>
         <div className="flex justify-between">
           <div className="text-sm font-medium text-primary">
-            Current Score: <span>{currentScore}</span>
+            Score: <span>{currentScore}</span>
           </div>
         </div>
       </div>
@@ -65,12 +65,12 @@ export default function GhostTypist() {
 
         {/* Ghost Display */}
         <div className="flex justify-center items-center mb-8">
-          <GhostImage className="w-32 h-32 opacity-90" />
+          <GhostImage className="w-48 h-48 opacity-90" />
         </div>
 
         {/* Word Display */}
         <div className="mb-4 text-center">
-          <div className="text-3xl font-semibold mb-4 text-primary word-display">
+          <div className="text-3xl mb-4 text-primary word-display">
             {typedWordState.letterStates.map((state, index) => (
               <span 
                 key={index} 

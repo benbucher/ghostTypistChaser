@@ -79,12 +79,12 @@
 
 .current-letter {
   text-decoration: underline;
-  font-weight: bold;
+  /* removed bold as requested */
 }
 
 .correct-letter {
   color: #5B5C5C;
-  font-weight: bold;
+  font-weight: 600; /* semibold instead of bold */
 }
 
 .incorrect-letter {
