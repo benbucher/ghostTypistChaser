@@ -14,27 +14,31 @@ export interface TypedWordState {
 
 export function useGame() {
   const [gameState, setGameState] = useState<GameState>('idle');
-  const [currentWord, setCurrentWord] = useState<string>('');
-  const [currentScore, setCurrentScore] = useState<number>(0);
-  const [highScore, setHighScore] = useState<number>(0);
-  const [gameTime, setGameTime] = useState<number>(0);
-  const [currentLevel, setCurrentLevel] = useState<number>(1);
-  const [progressValue, setProgressValue] = useState<number>(100);
-  const [finalScore, setFinalScore] = useState<number>(0);
-  const [decreaseRate, setDecreaseRate] = useState<number>(1);
+  const [gameData, setGameData] = useState({
+    currentWord: '',
+    currentScore: 0,
+    highScore: 0,
+    gameTime: 0,
+    currentLevel: 1,
+    progressValue: 100,
+    finalScore: 0,
+    decreaseRate: 1
+  });
   const [typedWordState, setTypedWordState] = useState<TypedWordState>({
     targetWord: '',
     typedText: '',
     letterStates: []
   });
   
-  const progressDecreaseTimerRef = useRef<number | null>(null);
-  const gameTimerRef = useRef<number | null>(null);
-  const difficultyIncreaseInterval = 20; // seconds
+  const timerRef = useRef<{ progress: number | null; game: number | null }>({
+    progress: null,
+    game: null
+  });
   
   // Load high score on initial render
   useEffect(() => {
-    setHighScore(loadHighScore());
+    const localHighScore = loadHighScore();
+    setGameData(prev => ({ ...prev, highScore: localHighScore }));
     fetchHighScore();
   }, []);
 
@@ -43,9 +47,8 @@ export function useGame() {
       const response = await apiRequest('GET', '/api/highscore', undefined);
       const data = await response.json();
       
-      // Only update if server high score is higher than local
-      if (data.highScore > loadHighScore()) {
-        setHighScore(data.highScore);
+      if (data.highScore > gameData.highScore) {
+        setGameData(prev => ({ ...prev, highScore: data.highScore }));
         saveHighScore(data.highScore);
       }
     } catch (error) {
@@ -62,122 +65,91 @@ export function useGame() {
     }
   };
 
+  const clearTimers = () => {
+    if (timerRef.current.progress) {
+      window.clearInterval(timerRef.current.progress);
+      timerRef.current.progress = null;
+    }
+    if (timerRef.current.game) {
+      window.clearInterval(timerRef.current.game);
+      timerRef.current.game = null;
+    }
+  };
+
   // Start the game
   const startGame = () => {
-    // Reset game state
-    setGameState('playing');
-    setCurrentScore(0);
-    setGameTime(0);
-    setProgressValue(100);
-    setDecreaseRate(1.0); // Start with consistent initial decrease rate
-    setCurrentLevel(1);
-    
-    // Set random word
+    clearTimers();
     const newWord = getRandomWord();
-    setCurrentWord(newWord);
     
-    // Reset typed word state
+    setGameState('playing');
+    setGameData({
+      currentWord: newWord,
+      currentScore: 0,
+      highScore: gameData.highScore,
+      gameTime: 0,
+      currentLevel: 1,
+      progressValue: 100,
+      finalScore: 0,
+      decreaseRate: 1.0
+    });
+    
     setTypedWordState({
       targetWord: newWord.toLowerCase(),
       typedText: '',
       letterStates: Array(newWord.length).fill('pending')
     });
     
-    // Start timers
     startProgressDecrease();
     updateGameTimer();
   };
   
   // End the game
   const endGame = () => {
-    // Save final score before changing game state
-    const finalScoreValue = currentScore;
-    setFinalScore(finalScoreValue);
+    const finalScoreValue = gameData.currentScore;
     
     setGameState('gameOver');
+    setGameData(prev => ({ ...prev, finalScore: finalScoreValue }));
+    clearTimers();
     
-    // Clear timers
-    if (progressDecreaseTimerRef.current) {
-      window.clearInterval(progressDecreaseTimerRef.current);
-      progressDecreaseTimerRef.current = null;
-    }
-    
-    if (gameTimerRef.current) {
-      window.clearInterval(gameTimerRef.current);
-      gameTimerRef.current = null;
-    }
-    
-    // Update high score if needed
-    if (finalScoreValue > highScore) {
-      setHighScore(finalScoreValue);
+    if (finalScoreValue > gameData.highScore) {
+      setGameData(prev => ({ ...prev, highScore: finalScoreValue }));
       saveHighScore(finalScoreValue);
       saveHighScoreToServer(finalScoreValue);
     }
   };
   
-  // Restart the game
-  const restartGame = () => {
-    startGame();
-  };
-  
   // Start decreasing progress
   const startProgressDecrease = () => {
-    if (progressDecreaseTimerRef.current) {
-      window.clearInterval(progressDecreaseTimerRef.current);
-    }
-    
-    progressDecreaseTimerRef.current = window.setInterval(() => {
-      setProgressValue((prev) => {
-        const newValue = prev - decreaseRate / 5; // Faster decrease (5 updates per second)
+    timerRef.current.progress = window.setInterval(() => {
+      setGameData(prev => {
+        const newValue = prev.progressValue - prev.decreaseRate / 5;
         
         if (newValue <= 0) {
           endGame();
-          return 0;
+          return { ...prev, progressValue: 0 };
         }
         
-        return newValue;
+        return { ...prev, progressValue: newValue };
       });
     }, 100);
   };
   
   // Update game timer with deterministic difficulty increase
   const updateGameTimer = () => {
-    if (gameTimerRef.current) {
-      window.clearInterval(gameTimerRef.current);
-    }
-    
-    gameTimerRef.current = window.setInterval(() => {
-      setGameTime((prev) => {
-        const newTime = prev + 1;
+    timerRef.current.game = window.setInterval(() => {
+      setGameData(prev => {
+        const newTime = prev.gameTime + 1;
+        const levelNumber = Math.floor(newTime / 20);
+        const newDecreaseRate = 1.0 + (levelNumber * 0.5);
         
-        // Deterministic difficulty increase every 20 seconds
-        // At 20s: 1.0 -> 1.5
-        // At 40s: 1.5 -> 2.0
-        // At 60s: 2.0 -> 2.5, etc.
-        if (newTime % difficultyIncreaseInterval === 0) {
-          const levelNumber = Math.floor(newTime / difficultyIncreaseInterval);
-          const newDecreaseRate = 1.0 + (levelNumber * 0.5);
-          
-          setDecreaseRate(newDecreaseRate);
-          setCurrentLevel(levelNumber + 1);
-        }
-        
-        return newTime;
+        return {
+          ...prev,
+          gameTime: newTime,
+          currentLevel: levelNumber + 1,
+          decreaseRate: newDecreaseRate
+        };
       });
     }, 1000);
-  };
-  
-  // Calculate correct characters
-  const calculateCorrectChars = (typed: string, target: string): number => {
-    let correctChars = 0;
-    
-    for (let i = 0; i < typed.length && i < target.length; i++) {
-      if (typed[i] === target[i]) {
-        correctChars++;
-      }
-    }
-    
-    return correctChars;
   };
 
   // Handle typing
@@ -185,9 +157,8 @@ export function useGame() {
     if (gameState !== 'playing') return;
     
     const typedText = e.target.value.toLowerCase();
-    const targetWord = currentWord.toLowerCase();
+    const targetWord = gameData.currentWord.toLowerCase();
     
-    // Update the typed word state for visualization
     const letterStates = targetWord.split('').map((letter, index) => {
       if (index >= typedText.length) return 'pending';
       return typedText[index] === letter ? 'correct' : 'incorrect';
@@ -199,67 +170,46 @@ export function useGame() {
       letterStates
     });
     
-    // Move to next word when the length matches
     if (typedText.length >= targetWord.length) {
-      // Count correct characters
-      const correctChars = calculateCorrectChars(typedText, targetWord);
-      
-      // Add points for correct characters
-      setCurrentScore(prev => prev + correctChars);
-      
-      // Calculate progress recovery based on accuracy
+      const correctChars = typedText.split('').filter((char, i) => char === targetWord[i]).length;
       const accuracy = correctChars / targetWord.length;
-      let progressRecovery = accuracy * 8; // Base recovery scaled by accuracy
+      const progressRecovery = accuracy * 8 + (typedText === targetWord ? 3 : 0);
       
-      // Perfect match bonus
-      if (typedText === targetWord) {
-        progressRecovery += 3; // Bonus for perfect word
-      }
+      setGameData(prev => ({
+        ...prev,
+        currentScore: prev.currentScore + correctChars,
+        progressValue: Math.min(100, prev.progressValue + progressRecovery)
+      }));
       
-      // Push back the ghost based on accuracy
-      setProgressValue(prev => Math.min(100, prev + progressRecovery));
-      
-      // Get a new word
       const newWord = getRandomWord();
-      setCurrentWord(newWord);
-      
-      // Reset typed word state
+      setGameData(prev => ({ ...prev, currentWord: newWord }));
       setTypedWordState({
         targetWord: newWord.toLowerCase(),
         typedText: '',
         letterStates: Array(newWord.length).fill('pending')
       });
       
-      // Clear input
       e.target.value = '';
     }
   };
   
   // Clean up timers on unmount
   useEffect(() => {
-    return () => {
-      if (progressDecreaseTimerRef.current) {
-        window.clearInterval(progressDecreaseTimerRef.current);
-      }
-      
-      if (gameTimerRef.current) {
-        window.clearInterval(gameTimerRef.current);
-      }
-    };
+    return clearTimers;
   }, []);
   
   return {
     gameState,
-    currentWord,
-    currentScore,
-    highScore,
-    gameTime,
-    currentLevel,
-    progressValue,
-    finalScore,
+    currentWord: gameData.currentWord,
+    currentScore: gameData.currentScore,
+    highScore: gameData.highScore,
+    gameTime: gameData.gameTime,
+    currentLevel: gameData.currentLevel,
+    progressValue: gameData.progressValue,
+    finalScore: gameData.finalScore,
     handleTyping,
     startGame,
-    restartGame,
+    restartGame: startGame,
     typedWordState
   };
 }
