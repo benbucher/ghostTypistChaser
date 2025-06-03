@@ -55,9 +55,11 @@ export function useGame() {
       const response = await apiRequest('GET', '/api/highscore', undefined);
       const data = await response.json();
       
+      // Update high score if server has a higher score
       if (data.highScore > gameData.highScore) {
-        setGameData(prev => ({ ...prev, highScore: data.highScore }));
-        saveHighScore(data.highScore);
+        const newHighScore = data.highScore;
+        setGameData(prev => ({ ...prev, highScore: newHighScore }));
+        saveHighScore(newHighScore);
       }
     } catch (error) {
       console.error('Failed to fetch high score:', error);
@@ -67,7 +69,15 @@ export function useGame() {
   // Save high score to server
   const saveHighScoreToServer = async (score: number) => {
     try {
-      await apiRequest('POST', '/api/highscore', { score });
+      const response = await apiRequest('POST', '/api/highscore', { score });
+      const data = await response.json();
+      
+      // Update local state with the server's response
+      if (data.highScore > gameData.highScore) {
+        setGameData(prev => ({ ...prev, highScore: data.highScore }));
+        saveHighScore(data.highScore);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['/api/highscore'] });
     } catch (error) {
       console.error('Failed to save high score:', error);
@@ -121,10 +131,12 @@ export function useGame() {
     setGameData(prev => ({ ...prev, finalScore: finalScoreValue }));
     clearTimers();
     
+    // Update high score if current score is higher
     if (finalScoreValue > gameData.highScore) {
-      setGameData(prev => ({ ...prev, highScore: finalScoreValue }));
-      saveHighScore(finalScoreValue);
-      saveHighScoreToServer(finalScoreValue);
+      const newHighScore = finalScoreValue;
+      setGameData(prev => ({ ...prev, highScore: newHighScore }));
+      saveHighScore(newHighScore);
+      saveHighScoreToServer(newHighScore);
     }
   };
   
