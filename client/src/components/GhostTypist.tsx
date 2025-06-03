@@ -31,20 +31,23 @@ export default function GhostTypist() {
     <div className="min-h-screen p-4 flex flex-col items-center justify-center fade-in">
       <div className="w-full max-w-2xl mx-auto flex flex-col">
         {/* Header + Score Display Combined */}
-        <div className="flex justify-between items-center w-full py-4">
+        <div className="flex justify-between items-center w-full py-4 gap-x-8">
           {/* Title */}
           <h1 className="text-4xl text-primary">Ghost Typist</h1>
 
-          {/* Score Display (Column Layout) */}
-          <div className="flex flex-col items-end gap-1">
-            <div className="text-sm font-medium text-primary">
-              High Score: <span>{highScore}</span>
+          {/* Compact Score Display with aligned labels/values */}
+          <div className="flex flex-col gap-1 text-sm font-medium text-primary w-40">
+            <div className="flex justify-between w-full">
+              <span className="whitespace-nowrap">High Score:</span>
+              <span>{highScore}</span>
             </div>
-            <div className="text-sm font-medium text-primary">
-              Score: <span>{currentScore}</span>
+            <div className="flex justify-between w-full">
+              <span>Score:</span>
+              <span>{currentScore}</span>
             </div>
-            <div className="text-sm font-medium text-primary">
-              Time: <span>{gameTime}</span>s
+            <div className="flex justify-between w-full">
+              <span>Time:</span>
+              <span>{gameTime}</span>
             </div>
           </div>
         </div>
