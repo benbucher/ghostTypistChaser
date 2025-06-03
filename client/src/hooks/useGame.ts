@@ -3,45 +3,53 @@ import { getRandomWord, saveHighScore, loadHighScore } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 
+// Define possible game states
 type GameState = 'idle' | 'playing' | 'gameOver';
 
-// For tracking typing state and displaying correct/incorrect letters
+// Interface for tracking typing state and letter-by-letter feedback
 export interface TypedWordState {
-  targetWord: string;
-  typedText: string;
-  letterStates: ('correct' | 'incorrect' | 'pending')[];
+  targetWord: string;    // The word the player needs to type
+  typedText: string;     // What the player has typed so far
+  letterStates: ('correct' | 'incorrect' | 'pending')[];  // Status of each letter
 }
 
 export function useGame() {
+  // Game state management
   const [gameState, setGameState] = useState<GameState>('idle');
+  
+  // Core game data including scores, timing, and progression
   const [gameData, setGameData] = useState({
-    currentWord: '',
-    currentScore: 0,
-    highScore: 0,
-    gameTime: 0,
-    currentLevel: 1,
-    progressValue: 100,
-    finalScore: 0,
-    decreaseRate: 1
+    currentWord: '',      // Current word to type
+    currentScore: 0,      // Player's current score
+    highScore: 0,         // Best score achieved
+    gameTime: 0,          // Time elapsed in seconds
+    currentLevel: 1,      // Current difficulty level
+    progressValue: 100,   // Progress bar value (0-100)
+    finalScore: 0,        // Score when game ends
+    decreaseRate: 1       // Rate at which progress decreases
   });
+
+  // State for tracking typing progress and letter states
   const [typedWordState, setTypedWordState] = useState<TypedWordState>({
     targetWord: '',
     typedText: '',
     letterStates: []
   });
   
+  // Refs for managing game and progress timers
   const timerRef = useRef<{ progress: number | null; game: number | null }>({
     progress: null,
     game: null
   });
   
-  // Load high score on initial render
+  // Load high score from local storage and server on initial render
   useEffect(() => {
     const localHighScore = loadHighScore();
     setGameData(prev => ({ ...prev, highScore: localHighScore }));
     fetchHighScore();
   }, []);
 
+  // Fetch high score from server
   const fetchHighScore = async () => {
     try {
       const response = await apiRequest('GET', '/api/highscore', undefined);
@@ -56,6 +64,7 @@ export function useGame() {
     }
   };
   
+  // Save high score to server
   const saveHighScoreToServer = async (score: number) => {
     try {
       await apiRequest('POST', '/api/highscore', { score });
@@ -65,6 +74,7 @@ export function useGame() {
     }
   };
 
+  // Clear all active timers
   const clearTimers = () => {
     if (timerRef.current.progress) {
       window.clearInterval(timerRef.current.progress);
@@ -76,7 +86,7 @@ export function useGame() {
     }
   };
 
-  // Start the game
+  // Initialize and start a new game
   const startGame = () => {
     clearTimers();
     const newWord = getRandomWord();
@@ -103,7 +113,7 @@ export function useGame() {
     updateGameTimer();
   };
   
-  // End the game
+  // End the current game and handle high score updates
   const endGame = () => {
     const finalScoreValue = gameData.currentScore;
     
@@ -118,7 +128,7 @@ export function useGame() {
     }
   };
   
-  // Start decreasing progress
+  // Start the progress bar decrease timer
   const startProgressDecrease = () => {
     timerRef.current.progress = window.setInterval(() => {
       setGameData(prev => {
@@ -134,13 +144,13 @@ export function useGame() {
     }, 100);
   };
   
-  // Update game timer with deterministic difficulty increase
+  // Update game timer and handle difficulty progression
   const updateGameTimer = () => {
     timerRef.current.game = window.setInterval(() => {
       setGameData(prev => {
         const newTime = prev.gameTime + 1;
-        const levelNumber = Math.floor(newTime / 20);
-        const newDecreaseRate = 1.0 + (levelNumber * 0.5);
+        const levelNumber = Math.floor(newTime / 20);  // Level up every 20 seconds
+        const newDecreaseRate = 1.0 + (levelNumber * 0.5);  // Increase difficulty with level
         
         return {
           ...prev,
@@ -152,13 +162,14 @@ export function useGame() {
     }, 1000);
   };
 
-  // Handle typing
+  // Handle player typing input
   const handleTyping = (e: ChangeEvent<HTMLInputElement>) => {
     if (gameState !== 'playing') return;
     
     const typedText = e.target.value.toLowerCase();
     const targetWord = gameData.currentWord.toLowerCase();
     
+    // Update letter states based on typing accuracy
     const letterStates = targetWord.split('').map((letter, index) => {
       if (index >= typedText.length) return 'pending';
       return typedText[index] === letter ? 'correct' : 'incorrect';
@@ -170,10 +181,12 @@ export function useGame() {
       letterStates
     });
     
+    // Check if word is complete
     if (typedText.length >= targetWord.length) {
+      // Calculate accuracy and score
       const correctChars = typedText.split('').filter((char, i) => char === targetWord[i]).length;
       const accuracy = correctChars / targetWord.length;
-      const progressRecovery = accuracy * 8 + (typedText === targetWord ? 3 : 0);
+      const progressRecovery = accuracy * 8 + (typedText === targetWord ? 3 : 0);  // Bonus for perfect typing
       
       setGameData(prev => ({
         ...prev,
@@ -181,6 +194,7 @@ export function useGame() {
         progressValue: Math.min(100, prev.progressValue + progressRecovery)
       }));
       
+      // Generate new word and reset typing state
       const newWord = getRandomWord();
       setGameData(prev => ({ ...prev, currentWord: newWord }));
       setTypedWordState({
@@ -193,11 +207,12 @@ export function useGame() {
     }
   };
   
-  // Clean up timers on unmount
+  // Cleanup timers when component unmounts
   useEffect(() => {
     return clearTimers;
   }, []);
   
+  // Return game state and control functions
   return {
     gameState,
     currentWord: gameData.currentWord,
