@@ -67,22 +67,28 @@ export default function GhostTypist() {
             ></div>
           </div>
 
-          {/* Word Display */}
+          {/* Word Display or Game Over */}
           <div className="mb-4 text-center">
-            <div className="text-3xl mb-4 text-primary word-display">
-              {typedWordState.letterStates.map((state, index) => (
-                <span 
-                  key={index} 
-                  className={
-                    index === typedWordState.typedText.length ? 'current-letter' : 
-                    state === 'correct' ? 'correct-letter' : 
-                    state === 'incorrect' ? 'incorrect-letter' : ''
-                  }
-                >
-                  {currentWord[index]}
-                </span>
-              ))}
-            </div>
+            {gameState === "gameOver" ? (
+              <div className="text-3xl mb-4 text-primary word-display">
+                GAME OVER!
+              </div>
+            ) : (
+              <div className="text-3xl mb-4 text-primary word-display">
+                {typedWordState.letterStates.map((state, index) => (
+                  <span 
+                    key={index} 
+                    className={
+                      index === typedWordState.typedText.length ? 'current-letter' : 
+                      state === 'correct' ? 'correct-letter' : 
+                      state === 'incorrect' ? 'incorrect-letter' : ''
+                    }
+                  >
+                    {currentWord[index]}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Typing Input */}
@@ -114,21 +120,8 @@ export default function GhostTypist() {
           {/* Game Over Message */}
           {gameState === "gameOver" && (
             <div className="text-center fade-in">
-              <h2 className="text-xl font-semibold mb-1 text-primary">
-                Game Over
-              </h2>
-              <div className="flex justify-center gap-4 mb-4 text-sm">
-                <div className="bg-white bg-opacity-50 px-3 py-2 rounded text-primary">
-                  <span className="font-medium">Score: </span>
-                  <span className="font-semibold">{finalScore}</span>
-                </div>
-                <div className="bg-white bg-opacity-50 px-3 py-2 rounded text-primary">
-                  <span className="font-medium">Time: </span>
-                  <span className="font-semibold">{gameTime}s</span>
-                </div>
-              </div>
               <Button
-                className="bg-primary text-background font-medium py-2 px-6 rounded-full hover:bg-opacity-90 transition-all"
+                className="bg-primary text-background font-medium py-3 px-8 rounded-full hover:bg-opacity-90 transition-all text-lg mb-4"
                 onClick={restartGame}
               >
                 Play Again
