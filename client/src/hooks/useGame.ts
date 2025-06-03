@@ -161,8 +161,8 @@ export function useGame() {
     timerRef.current.game = window.setInterval(() => {
       setGameData(prev => {
         const newTime = prev.gameTime + 1;
-        const levelNumber = Math.floor(newTime / 20);  // Level up every 20 seconds
-        const newDecreaseRate = 1.0 + (levelNumber * 0.5);  // Increase difficulty with level
+        const levelNumber = Math.floor(newTime / 40);  // Level up every 40 seconds
+        const newDecreaseRate = 3.0 + (levelNumber * 0.5);  // Increase difficulty with level
         
         return {
           ...prev,
@@ -195,10 +195,9 @@ export function useGame() {
     
     // Check if word is complete
     if (typedText.length >= targetWord.length) {
-      // Calculate accuracy and score
+      // Calculate score
       const correctChars = typedText.split('').filter((char, i) => char === targetWord[i]).length;
-      const accuracy = correctChars / targetWord.length;
-      const progressRecovery = accuracy * 8 + (typedText === targetWord ? 3 : 0);  // Bonus for perfect typing
+      const progressRecovery = correctChars + (typedText === targetWord ? 2: 0);  // Bonus for perfect typing
       
       setGameData(prev => ({
         ...prev,
