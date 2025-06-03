@@ -61,7 +61,7 @@ export default function GhostTypist() {
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full h-5 bg-gray-200 rounded-full mb-8 border-2 border-primary">
+          <div className="w-full h-5 bg-gray-200 rounded-full mb-8 border-2 border-primary overflow-hidden">
             <div
               className={`h-full bg-primary rounded-l-full transition-all duration-300 ${progressValue <= 30 ? "bg-opacity-80" : ""}`}
               style={{ width: `${progressValue}%` }}
