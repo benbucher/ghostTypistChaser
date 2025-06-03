@@ -28,8 +28,8 @@ export default function GhostTypist() {
   }, [gameState]);
 
   return (
-    <div className="min-h-screen p-4 flex flex-col items-center justify-between fade-in">
-      <div className="w-full max-w-2xl mx-auto flex flex-col min-h-screen">
+    <div className="min-h-screen p-4 flex flex-col items-center justify-center fade-in">
+      <div className="w-full max-w-2xl mx-auto flex flex-col">
         {/* Header + Score Display Combined */}
         <div className="flex justify-between items-center w-full py-4">
           {/* Title */}
@@ -106,34 +106,40 @@ export default function GhostTypist() {
           </div>
 
           {/* Game Controls */}
-          {gameState === "idle" && (
-            <Button
-              className="bg-primary text-background font-medium py-3 px-8 rounded-full hover:bg-opacity-90 transition-all text-lg mb-4"
-              onClick={startGame}
-            >
-              Start Game
-            </Button>
-          )}
-
-          {/* Game Over Message */}
-          {gameState === "gameOver" && (
-            <div className="text-center fade-in">
+          <div className="text-center h-[64px] mb-4 fade-in">
+            {gameState === "idle" && (
               <Button
-                className="bg-primary text-background font-medium py-3 px-8 rounded-full hover:bg-opacity-90 transition-all text-lg mb-4"
+                className="bg-primary text-background font-medium py-3 px-8 rounded-full hover:bg-opacity-90 transition-all text-lg"
+                onClick={startGame}
+              >
+                Start Game
+              </Button>
+            )}
+
+            {gameState === "gameOver" && (
+              <Button
+                className="bg-primary text-background font-medium py-3 px-8 rounded-full hover:bg-opacity-90 transition-all text-lg"
                 onClick={restartGame}
               >
                 Play Again
               </Button>
-            </div>
-          )}
-        </div>
+            )}
 
-        {/* Footer */}
-        <div className="mt-auto w-full text-center py-4">
-          <p className="text-xs text-primary opacity-70">
-            Ghost Typist | Type to survive!
-          </p>
+            {/* Invisible placeholder to maintain layout when no button is shown */}
+            {(gameState !== "idle" && gameState !== "gameOver") && (
+              <div className="opacity-0 pointer-events-none select-none">
+                <Button className="bg-primary text-background font-medium py-3 px-8 rounded-full hover:bg-opacity-90 transition-all text-lg">Placeholder</Button>
+              </div>
+            )}
+          </div>
+
         </div>
+      </div>
+      {/* Footer */}
+      <div className="w-full text-center py-4">
+        <p className="text-xs text-primary opacity-70">
+          Ghost Typist | Type to survive!
+        </p>
       </div>
     </div>
   );
