@@ -145,7 +145,7 @@ export function useGame() {
         return {
           ...prev,
           gameTime: newTime,
-          currentLevel: levelNumber + 1,
+          currentLevel: levelNumber,
           decreaseRate: newDecreaseRate
         };
       });
