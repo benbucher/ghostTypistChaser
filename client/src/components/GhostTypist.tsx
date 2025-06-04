@@ -36,7 +36,7 @@ export default function GhostTypist() {
           <h1 className="text-4xl text-primary">Ghost Typist</h1>
 
           {/* Compact Score Display with aligned labels/values */}
-          <div className="flex flex-col gap-1 text-sm font-medium text-primary w-40">
+          <div className="flex flex-col gap-1 text-xs font-medium text-primary w-40">
             <div className="flex justify-between w-full">
               <span className="whitespace-nowrap">High Score:</span>
               <span>{highScore}</span>
@@ -56,7 +56,7 @@ export default function GhostTypist() {
         <div className="flex-grow flex flex-col items-center justify-center w-full">
 
           {/* Ghost Display */}
-          <div className="flex justify-center items-center mb-8">
+          <div className="flex justify-center items-center mb-4">
             <GhostImage className="w-48 h-48 opacity-90" />
           </div>
 
@@ -69,25 +69,34 @@ export default function GhostTypist() {
           </div>
 
           {/* Word Display or Game Over */}
-          <div className="mb-4 text-center">
+          <div className="mb-4 text-center min-h-[3rem]">
             {gameState === "gameOver" ? (
               <div className="text-3xl mb-4 text-primary word-display">
                 GAME OVER!
               </div>
-            ) : (
+            ) : typedWordState?.letterStates?.length ? (
               <div className="text-3xl mb-4 text-primary word-display">
                 {typedWordState.letterStates.map((state, index) => (
-                  <span 
-                    key={index} 
+                  <span
+                    key={index}
                     className={
-                      index === typedWordState.typedText.length ? 'current-letter' : 
-                      state === 'correct' ? 'correct-letter' : 
-                      state === 'incorrect' ? 'incorrect-letter' : ''
+                      index === typedWordState.typedText.length
+                        ? "current-letter"
+                        : state === "correct"
+                        ? "correct-letter"
+                        : state === "incorrect"
+                        ? "incorrect-letter"
+                        : ""
                     }
                   >
                     {currentWord[index]}
                   </span>
                 ))}
+              </div>
+            ) : (
+              // Invisible placeholder for layout stability
+              <div className="text-3xl mb-4 text-transparent select-none">
+                PLACEHOLDER
               </div>
             )}
           </div>
@@ -98,7 +107,7 @@ export default function GhostTypist() {
               ref={inputRef}
               type="text"
               className="w-full p-3 text-lg rounded border-2 border-primary bg-background text-primary transition-all"
-              placeholder="Type here..."
+              placeholder="Type here ..."
               onChange={handleTyping}
               disabled={gameState !== "playing"}
               autoComplete="off"
