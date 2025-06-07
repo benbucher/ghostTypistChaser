@@ -27,6 +27,26 @@ export default function GhostTypist() {
     }
   }, [gameState]);
 
+  // Add keyboard event listener for space and enter keys
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle space and enter keys when not typing in the input
+      if (document.activeElement !== inputRef.current) {
+        if (event.key === " " || event.key === "Enter") {
+          event.preventDefault();
+          if (gameState === "idle") {
+            startGame();
+          } else if (gameState === "gameOver") {
+            restartGame();
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [gameState, startGame, restartGame]);
+
   return (
     <div className="min-h-screen p-4 flex flex-col items-center justify-center fade-in">
       <div className="w-full max-w-2xl mx-auto flex flex-col">
